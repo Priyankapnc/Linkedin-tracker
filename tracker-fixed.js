@@ -9,7 +9,9 @@ const isReadOnly=!!sharedData;
 
 async function load(){
   if(isReadOnly){
-    try{return JSON.parse(decodeURIComponent(atob(sharedData)));}catch{return{};}
+    try{
+      return JSON.parse(decodeURIComponent(escape(atob(sharedData))));
+    }catch{return{};}
   }
   if(isExt)return new Promise(r=>chrome.storage.local.get(["leads","roles","dismissed"],r));
   return{
@@ -74,7 +76,12 @@ document.getElementById("remindersHeader").addEventListener("click",()=>{
 });
 
 function generateShareUrl(){
-  const enc=btoa(encodeURIComponent(JSON.stringify({leads,roles})));
+  // Strip heavy/unnecessary fields to keep URL short
+  const minimal={
+    leads:leads.map(({name,company,url,status,notes,date,roleId})=>({name,company,url,status,notes,date,roleId})),
+    roles
+  };
+  const enc=btoa(unescape(encodeURIComponent(JSON.stringify(minimal))));
   return`${location.origin}${location.pathname}?data=${enc}`;
 }
 
