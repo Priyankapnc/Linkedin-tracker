@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LinkedIn Outreach Tracker</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+body { background:linear-gradient(135deg, #f0f4ff 0%, #f8fafc 100%); color:#1e293b; min-height:100vh; }
+
+.topbar { 
+  background:linear-gradient(135deg, #0a66c2 0%, #004182 100%); 
+  color:white; 
+  padding:16px 32px; 
+  display:flex; 
+  align-items:center; 
+  gap:16px;
+  box-shadow: 0 4px 20px rgba(10,102,194,0.3);
+}
+.topbar h1 { font-size:20px; font-weight:800; flex:1; letter-spacing:-0.5px; }
+.topbar h1::before { content:"📊 "; }
+.read-badge { background:#fbbf24; color:#78350f; font-size:11px; font-weight:800; padding:5px 12px; border-radius:99px; }
+.btn-top { 
+  background:rgba(255,255,255,0.2); 
+  border:1px solid rgba(255,255,255,0.3); 
+  color:white; 
+  border-radius:10px; 
+  padding:9px 18px; 
+  font-size:13px; 
+  font-weight:600; 
+  cursor:pointer;
+  transition: all 0.2s ease;
+}
+.btn-top:hover { background:rgba(255,255,255,0.3); transform:translateY(-1px); }
+
+.container { max-width:1250px; margin:0 auto; padding:28px; }
+
+.reminders-wrap { margin-bottom:24px; }
+.reminders-header { 
+  display:flex; 
+  align-items:center; 
+  gap:12px; 
+  background:linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%); 
+  border:2px solid #fb923c; 
+  border-radius:14px 14px 0 0; 
+  padding:14px 20px; 
+  cursor:pointer; 
+  user-select:none;
+  transition: all 0.2s ease;
+}
+.reminders-header:hover { background:linear-gradient(135deg, #ffedd5 0%, #fed7aa 100%); }
+.reminders-header.collapsed { border-radius:14px; }
+.reminders-header .bell { font-size:20px; }
+.reminders-header .title { font-size:15px; font-weight:700; color:#c2410c; flex:1; }
+.reminders-header .count { background:linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:white; font-size:11px; font-weight:800; padding:4px 10px; border-radius:99px; box-shadow:0 2px 8px rgba(239,68,68,0.3); }
+.reminders-header .chevron { color:#c2410c; font-size:12px; transition:transform 0.2s; }
+.reminders-header .chevron.open { transform:rotate(0deg); }
+.reminders-list { background:white; border:2px solid #fb923c; border-top:none; border-radius:0 0 14px 14px; }
+.reminder-item { display:flex; align-items:center; gap:16px; padding:14px 20px; border-top:1px solid #fff7ed; transition:background 0.15s; }
+.reminder-item:hover { background:#fffbf7; }
+.reminder-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg, #fed7aa 0%, #fdba74 100%); display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; color:#c2410c; flex-shrink:0; }
+.reminder-info { flex:1; }
+.reminder-name { font-size:14px; font-weight:600; }
+.reminder-meta { font-size:12px; color:#94a3b8; margin-top:3px; }
+.reminder-days { font-size:12px; font-weight:700; color:#ea580c; background:#fff7ed; padding:5px 12px; border-radius:99px; }
+.reminder-actions { display:flex; gap:10px; }
+.btn-followup { background:linear-gradient(135deg, #0a66c2 0%, #0958a8 100%); color:white; border:none; border-radius:8px; padding:8px 14px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.btn-followup:hover { transform:translateY(-1px); box-shadow:0 4px 12px rgba(10,102,194,0.3); }
+.btn-dismiss { background:#f1f5f9; color:#475569; border:none; border-radius:8px; padding:8px 12px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+.btn-dismiss:hover { background:#e2e8f0; }
+
+.share-banner { 
+  background:white; 
+  border-radius:16px; 
+  padding:20px 24px; 
+  box-shadow:0 4px 20px rgba(0,0,0,0.06); 
+  margin-bottom:24px; 
+  display:flex; 
+  align-items:center; 
+  gap:16px;
+  border:1px solid #e2e8f0;
+}
+.share-banner .icon { font-size:28px; }
+.share-banner .text { flex:1; }
+.share-banner .text strong { font-size:15px; display:block; margin-bottom:3px; }
+.share-banner .text span { font-size:13px; color:#64748b; }
+.share-url { 
+  font-family:'SF Mono',Monaco,monospace; 
+  font-size:11px; 
+  background:#f8fafc; 
+  border:1px solid #e2e8f0; 
+  border-radius:8px; 
+  padding:10px 14px; 
+  max-width:320px; 
+  overflow:hidden; 
+  text-overflow:ellipsis; 
+  white-space:nowrap; 
+  color:#64748b; 
+}
+.copy-btn { 
+  background:linear-gradient(135deg, #0a66c2 0%, #0958a8 100%); 
+  color:white; 
+  border:none; 
+  border-radius:10px; 
+  padding:12px 24px; 
+  font-size:13px; 
+  font-weight:700; 
+  cursor:pointer; 
+  white-space:nowrap;
+  transition:all 0.2s ease;
+  box-shadow:0 4px 12px rgba(10,102,194,0.25);
+}
+.copy-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(10,102,194,0.35); }
+.copy-btn.copied { background:linear-gradient(135deg, #16a34a 0%, #15803d 100%); box-shadow:0 4px 12px rgba(22,163,74,0.3); }
+
+.stats { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:24px; }
+.stat-card { 
+  background:white; 
+  border-radius:16px; 
+  padding:22px 24px; 
+  box-shadow:0 4px 20px rgba(0,0,0,0.06);
+  border:1px solid #e2e8f0;
+  transition:all 0.2s ease;
+}
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,0.1); }
+.stat-card .v { font-size:32px; font-weight:800; letter-spacing:-1px; }
+.stat-card .l { font-size:13px; color:#94a3b8; margin-top:4px; font-weight:500; }
+.blue{color:#0a66c2;}.green{color:#16a34a;}.purple{color:#7c3aed;}.orange{color:#ea580c;}
+
+.controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:18px; }
+.controls input, .controls select { 
+  border:1px solid #e2e8f0; 
+  border-radius:10px; 
+  padding:10px 14px; 
+  font-size:13px; 
+  outline:none; 
+  background:white;
+  transition:all 0.2s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.controls input:focus, .controls select:focus { border-color:#0a66c2; box-shadow:0 0 0 3px rgba(10,102,194,0.1); }
+.controls input { width:220px; }
+.pill { 
+  font-size:12px; 
+  padding:7px 16px; 
+  border-radius:99px; 
+  border:1px solid #e2e8f0; 
+  background:white; 
+  cursor:pointer; 
+  font-weight:600; 
+  color:#475569; 
+  white-space:nowrap;
+  transition:all 0.15s ease;
+}
+.pill:hover { background:#f8fafc; border-color:#cbd5e1; }
+.pill.active { background:linear-gradient(135deg, #0a66c2 0%, #0958a8 100%); color:white; border-color:transparent; box-shadow:0 2px 8px rgba(10,102,194,0.3); }
+.ml { margin-left:auto; }
+.btn-sm { background:white; border:1px solid #e2e8f0; border-radius:10px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer; color:#475569; transition:all 0.2s; }
+.btn-sm:hover { background:#f8fafc; border-color:#cbd5e1; }
+
+.table-wrap { 
+  background:white; 
+  border-radius:16px; 
+  box-shadow:0 4px 20px rgba(0,0,0,0.06); 
+  overflow:hidden;
+  border:1px solid #e2e8f0;
+}
+table { width:100%; border-collapse:collapse; font-size:13px; }
+thead { background:linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); }
+th { text-align:left; padding:14px 18px; font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.05em; }
+td { padding:14px 18px; border-top:1px solid #f1f5f9; }
+tr { transition:background 0.15s ease; }
+tr:hover td { background:#f8fafc; }
+tr.overdue td { background:linear-gradient(135deg, #fff7ed 0%, #fffbf7 100%); }
+a.ll { color:#0a66c2; font-weight:600; text-decoration:none; transition:color 0.15s; }
+a.ll:hover { color:#004182; text-decoration:underline; }
+
+.ss { 
+  font-size:11px; 
+  font-weight:700; 
+  padding:6px 12px; 
+  border-radius:99px; 
+  border:none; 
+  cursor:pointer; 
+  outline:none;
+  transition:all 0.15s ease;
+}
+.ss:hover { opacity:0.85; }
+.ss[disabled] { cursor:default; appearance:none; -webkit-appearance:none; }
+
+.s0{background:linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);color:#1d4ed8;}
+.s1{background:linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);color:#0369a1;}
+.s2{background:linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);color:#065f46;}
+.s2b{background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);color:#92400e;}
+.s3{background:linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);color:#854d0e;}
+.s4{background:linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);color:#15803d;}
+.s4b{background:linear-gradient(135deg, #ddd6fe 0%, #c4b5fd 100%);color:#5b21b6;}
+.s4c{background:linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 100%);color:#9d174d;}
+.s5b{background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);color:#b91c1c;}
+.s5c{background:linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);color:#047857;}
+.s5{background:linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%);color:#6d28d9;}
+.s6{background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);color:#b91c1c;}
+.s7{background:linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);color:#475569;}
+
+.role-tag { 
+  background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); 
+  color:#1d4ed8; 
+  font-size:11px; 
+  font-weight:700; 
+  padding:4px 10px; 
+  border-radius:99px; 
+}
+.overdue-tag { 
+  background:linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); 
+  color:#b91c1c; 
+  font-size:10px; 
+  font-weight:700; 
+  padding:3px 8px; 
+  border-radius:99px; 
+  margin-left:6px;
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity:1; }
+  50% { opacity:0.7; }
+}
+
+.del-btn { 
+  color:#f87171; 
+  background:none; 
+  border:none; 
+  cursor:pointer; 
+  font-size:14px;
+  opacity:0.6;
+  transition:all 0.15s;
+}
+.del-btn:hover { opacity:1; transform:scale(1.1); }
+
+.empty { text-align:center; padding:60px; color:#94a3b8; font-size:15px; }
+
+.readonly-bar { 
+  background:linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); 
+  border-bottom:2px solid #fbbf24; 
+  padding:12px 32px; 
+  font-size:13px; 
+  color:#92400e; 
+  font-weight:600; 
+  display:flex; 
+  align-items:center; 
+  gap:10px; 
+}
+
+.notes-cell { min-width:180px; }
+.notes-input {
+  width:100%;
+  border:1.5px solid transparent;
+  background:#f8fafc;
+  padding:8px 12px;
+  font-size:12px;
+  color:#475569;
+  border-radius:8px;
+  outline:none;
+  transition: all 0.2s ease;
+}
+.notes-input:hover {
+  border-color:#e2e8f0;
+  background:#f1f5f9;
+}
+.notes-input:focus {
+  border-color:#0a66c2;
+  background:white;
+  color:#1e293b;
+  box-shadow: 0 0 0 3px rgba(10,102,194,0.1);
+}
+.notes-input::placeholder {
+  color:#94a3b8;
+  font-style:italic;
+}
+
+@media (max-width: 900px) {
+  .stats { grid-template-columns:repeat(2,1fr); }
+  .share-banner { flex-wrap:wrap; }
+  .share-url { max-width:100%; flex:1 1 100%; margin-top:10px; }
+}
+</style>
+</head>
+<body>
+<div id="readonlyBar" class="readonly-bar" style="display:none">
+  👁️ You're viewing this tracker in <strong>read-only mode</strong>
+</div>
+<div class="topbar">
+  <h1>LinkedIn Outreach Tracker</h1>
+  <span id="readBadge" class="read-badge" style="display:none">READ ONLY</span>
+  <button class="btn-top" id="exportBtn">⬇️ Export CSV</button>
+</div>
+<div class="container">
+  <div class="reminders-wrap" id="remindersWrap" style="display:none">
+    <div class="reminders-header" id="remindersHeader">
+      <span class="bell">🔔</span>
+      <span class="title">Follow-up Reminders</span>
+      <span class="count" id="reminderCount">0</span>
+      <span class="chevron open" id="reminderChevron">▼</span>
+    </div>
+    <div class="reminders-list" id="remindersList"></div>
+  </div>
+  
+  <div class="share-banner" id="shareBanner">
+    <div class="icon">🔗</div>
+    <div class="text">
+      <strong>Share with your team</strong>
+      <span>Anyone with the link can view in read-only mode</span>
+    </div>
+    <div class="share-url" id="shareUrl">Generating link...</div>
+    <button class="copy-btn" id="copyBtn">📋 Copy Link</button>
+  </div>
+  
+  <div class="stats">
+    <div class="stat-card">
+      <div class="v blue" id="sTotal">0</div>
+      <div class="l">Total Leads</div>
+    </div>
+    <div class="stat-card">
+      <div class="v green" id="sReplied">0</div>
+      <div class="l">Responded</div>
+    </div>
+    <div class="stat-card">
+      <div class="v purple" id="sMeetings">0</div>
+      <div class="l">In Pipeline</div>
+    </div>
+    <div class="stat-card">
+      <div class="v orange" id="sRate">0%</div>
+      <div class="l">Response Rate</div>
+    </div>
+  </div>
+  
+  <div class="controls">
+    <input type="text" id="search" placeholder="🔍 Search name or company..."/>
+    <select id="roleFilter"><option value="">All Roles</option></select>
+    <div id="statusFilters"></div>
+    <div class="ml">
+      <button class="btn-sm" id="exportBtn2">⬇️ Export CSV</button>
+    </div>
+  </div>
+  
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Company</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Notes</th>
+          <th>Date</th>
+          <th id="actionsHead"></th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+<script>
+const STATUSES=["Contacted","Connection Sent","Connected","Connected - No Response","Message Sent","Replied","JD Shared","Shared for Screening","Not Interested","Moved to Interview","Meeting Set","No Response","Closed"];
+const S_CLASS=["s0","s1","s2","s2b","s3","s4","s4b","s4c","s5b","s5c","s5","s6","s7"];
+const FOLLOWUP_DAYS=3;
+let leads=[],roles=[],dismissed=new Set(),filterStatus="All",filterRole="",search="";
+const isExt=typeof chrome!=="undefined"&&chrome.storage;
+const params=new URLSearchParams(location.search);
+const sharedData=params.get("data");
+const isReadOnly=!!sharedData;
+
+async function load(){
+  if(isReadOnly){
+    try{return JSON.parse(decodeURIComponent(atob(sharedData)));}catch{return{};}
+  }
+  if(isExt)return new Promise(r=>chrome.storage.local.get(["leads","roles","dismissed"],r));
+  return{
+    leads:JSON.parse(localStorage.getItem("leads")||"[]"),
+    roles:JSON.parse(localStorage.getItem("roles")||"[]"),
+    dismissed:JSON.parse(localStorage.getItem("dismissed")||"[]")
+  };
+}
+
+async function save(obj){
+  if(isReadOnly)return;
+  if(isExt)return new Promise(r=>chrome.storage.local.set(obj,r));
+  Object.entries(obj).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));
+}
+
+function daysSince(d){const t=new Date(d);if(isNaN(t))return 0;return Math.floor((Date.now()-t)/86400000);}
+
+function getReminders(){
+  return leads.filter(l=>l.status==="Connected"&&!dismissed.has(String(l.id))&&daysSince(l.statusChangedAt||l.date)>=FOLLOWUP_DAYS)
+    .map(l=>({...l,daysSince:daysSince(l.statusChangedAt||l.date)}))
+    .sort((a,b)=>b.daysSince-a.daysSince);
+}
+
+function initials(n){return n.split(" ").slice(0,2).map(w=>w[0]||"").join("").toUpperCase();}
+
+function renderReminders(){
+  if(isReadOnly)return;
+  const rem=getReminders();
+  const wrap=document.getElementById("remindersWrap");
+  const list=document.getElementById("remindersList");
+  if(!rem.length){wrap.style.display="none";return;}
+  wrap.style.display="block";
+  document.getElementById("reminderCount").textContent=rem.length;
+  list.innerHTML=rem.map(r=>`
+    <div class="reminder-item">
+      <div class="reminder-avatar">${initials(r.name)}</div>
+      <div class="reminder-info">
+        <div class="reminder-name">${r.name}</div>
+        <div class="reminder-meta">${r.company||"—"} · <span class="role-tag">${roleName(r.roleId)}</span></div>
+      </div>
+      <div class="reminder-days">+${r.daysSince}d no message</div>
+      <div class="reminder-actions">
+        <button class="btn-followup" data-url="${r.url}">💬 Message</button>
+        <button class="btn-dismiss" data-id="${r.id}">Dismiss</button>
+      </div>
+    </div>
+  `).join("");
+  list.querySelectorAll(".btn-followup").forEach(b=>b.addEventListener("click",()=>window.open(b.dataset.url,"_blank")));
+  list.querySelectorAll(".btn-dismiss").forEach(b=>b.addEventListener("click",async()=>{
+    dismissed.add(b.dataset.id);
+    await save({dismissed:[...dismissed]});
+    renderReminders();
+  }));
+}
+
+let remOpen=true;
+document.getElementById("remindersHeader").addEventListener("click",()=>{
+  remOpen=!remOpen;
+  document.getElementById("remindersList").style.display=remOpen?"block":"none";
+  document.getElementById("reminderChevron").className="chevron"+(remOpen?" open":"");
+  document.getElementById("remindersHeader").className="reminders-header"+(remOpen?"":" collapsed");
+});
+
+function generateShareUrl(){
+  const enc=btoa(encodeURIComponent(JSON.stringify({leads,roles})));
+  return`${location.origin}${location.pathname}?data=${enc}`;
+}
+
+function updateShareUrl(){
+  const url = generateShareUrl();
+  const shareUrlEl = document.getElementById("shareUrl");
+  if(url.length > 100) {
+    shareUrlEl.textContent = url.substring(0, 50) + "... (" + leads.length + " leads)";
+    shareUrlEl.title = "Click Copy to copy full link";
+  } else {
+    shareUrlEl.textContent = url;
+  }
+}
+
+function updateStats(){
+  const t=leads.length;
+  const rep=leads.filter(l=>["Replied","JD Shared","Shared for Screening","Meeting Set","Moved to Interview"].includes(l.status)).length;
+  const meet=leads.filter(l=>["Meeting Set","Moved to Interview","Shared for Screening"].includes(l.status)).length;
+  document.getElementById("sTotal").textContent=t;
+  document.getElementById("sReplied").textContent=rep;
+  document.getElementById("sMeetings").textContent=meet;
+  document.getElementById("sRate").textContent=t?Math.round(rep/t*100)+"%":"0%";
+}
+
+function roleName(id){return roles.find(r=>r.id===id)?.title||id||"—";}
+
+function sClass(s){
+  const idx = STATUSES.indexOf(s);
+  return S_CLASS[idx]||"s0";
+}
+
+function isOverdue(l){
+  return l.status==="Connected"&&daysSince(l.statusChangedAt||l.date)>=FOLLOWUP_DAYS&&!dismissed.has(String(l.id));
+}
+
+function renderRoleFilter(){
+  const sel=document.getElementById("roleFilter");
+  sel.innerHTML=`<option value="">All Roles</option>`+roles.map(r=>`<option value="${r.id}">${r.title}</option>`).join("");
+  sel.value=filterRole;
+  sel.onchange=e=>{filterRole=e.target.value;render()};
+}
+
+function renderStatusFilters(){
+  const wrap=document.getElementById("statusFilters"),counts={};
+  leads.forEach(l=>counts[l.status]=(counts[l.status]||0)+1);
+  wrap.innerHTML=["All",...STATUSES].map(s=>{
+    const c=s==="All"?leads.length:(counts[s]||0);
+    if(s!=="All" && c===0) return "";
+    return`<button class="pill${filterStatus===s?" active":""}" data-s="${s}">${s} (${c})</button>`;
+  }).join("");
+  wrap.querySelectorAll(".pill").forEach(b=>b.addEventListener("click",()=>{
+    filterStatus=b.dataset.s;
+    render();
+  }));
+}
+
+async function updateNote(id, newNote) {
+  leads = leads.map(l => l.id === id ? {...l, notes: newNote, updatedAt: new Date().toISOString()} : l);
+  await save({leads});
+}
+
+function render(){
+  updateStats();
+  renderStatusFilters();
+  renderRoleFilter();
+  renderReminders();
+  if(!isReadOnly)updateShareUrl();
+  
+  const filtered=leads.filter(l=>{
+    const mS=filterStatus==="All"||l.status===filterStatus;
+    const mR=!filterRole||l.roleId===filterRole;
+    const mQ=!search||l.name.toLowerCase().includes(search)||(l.company||"").toLowerCase().includes(search);
+    return mS&&mR&&mQ;
+  });
+  
+  const tbody=document.getElementById("tbody");
+  if(!filtered.length){
+    tbody.innerHTML=`<tr><td colspan="7" class="empty">${!leads.length?"No leads yet — add some to get started!":"No leads match your filters."}</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML=filtered.map(l=>`
+    <tr class="${isOverdue(l)?"overdue":""}">
+      <td>
+        <a class="ll" href="${l.url}" target="_blank">${l.name}</a>
+        ${isOverdue(l)?`<span class="overdue-tag">⏰ Follow up</span>`:""}
+      </td>
+      <td style="color:#64748b">${l.company||"—"}</td>
+      <td><span class="role-tag">${roleName(l.roleId)}</span></td>
+      <td>
+        <select class="ss ${sClass(l.status)}" data-id="${l.id}" ${isReadOnly?"disabled":""}>
+          ${STATUSES.map(s=>`<option${s===l.status?" selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
+      <td class="notes-cell">
+        ${isReadOnly 
+          ? `<span style="color:#64748b">${l.notes||"—"}</span>`
+          : `<input type="text" class="notes-input" data-id="${l.id}" value="${(l.notes||"").replace(/"/g, '&quot;')}" placeholder="Add note..." />`
+        }
+      </td>
+      <td style="color:#94a3b8;font-size:12px">${l.date}</td>
+      <td>${!isReadOnly?`<button class="del-btn" data-id="${l.id}">✕</button>`:""}</td>
+    </tr>
+  `).join("");
+  
+  if(!isReadOnly){
+    tbody.querySelectorAll(".ss").forEach(sel=>sel.addEventListener("change",async e=>{
+      const id=Number(e.target.dataset.id);
+      leads=leads.map(l=>l.id===id?{...l,status:e.target.value,statusChangedAt:new Date().toISOString()}:l);
+      await save({leads});
+      render();
+    }));
+    
+    tbody.querySelectorAll(".notes-input").forEach(input=>{
+      input.addEventListener("change", async e=>{
+        const id=Number(e.target.dataset.id);
+        await updateNote(id, e.target.value.trim());
+      });
+      input.addEventListener("keydown", e=>{
+        if(e.key === "Enter") e.target.blur();
+      });
+    });
+    
+    tbody.querySelectorAll(".del-btn").forEach(btn=>btn.addEventListener("click",async()=>{
+      if(!confirm("Remove this lead?"))return;
+      leads=leads.filter(l=>l.id!==Number(btn.dataset.id));
+      await save({leads});
+      render();
+    }));
+  }
+}
+
+function exportCSV(){
+  const rows=[["Name","Company","Role","LinkedIn URL","Status","Notes","Date"]];
+  leads.forEach(l=>rows.push([l.name,l.company||"",roleName(l.roleId),l.url,l.status,l.notes||"",l.date]));
+  const csv=rows.map(r=>r.map(v=>`"${v}"`).join(",")).join("\n");
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="linkedin-outreach.csv";
+  a.click();
+}
+
+document.getElementById("exportBtn").addEventListener("click",exportCSV);
+document.getElementById("exportBtn2").addEventListener("click",exportCSV);
+document.getElementById("search").addEventListener("input",e=>{search=e.target.value.toLowerCase();render();});
+
+document.getElementById("copyBtn")?.addEventListener("click",()=>{
+  navigator.clipboard.writeText(generateShareUrl()).then(()=>{
+    const btn=document.getElementById("copyBtn");
+    btn.textContent="✓ Copied!";
+    btn.classList.add("copied");
+    setTimeout(()=>{btn.textContent="📋 Copy Link";btn.classList.remove("copied");},2500);
+  });
+});
+
+(async()=>{
+  if(isReadOnly){
+    document.getElementById("readonlyBar").style.display="flex";
+    document.getElementById("readBadge").style.display="inline";
+    document.getElementById("shareBanner").style.display="none";
+    document.getElementById("actionsHead").style.display="none";
+  }
+  const d=await load();
+  leads=d.leads||[];
+  roles=d.roles||[];
+  dismissed=new Set((d.dismissed||[]).map(String));
+  render();
+})();
+</script>
+</body>
+</html>
